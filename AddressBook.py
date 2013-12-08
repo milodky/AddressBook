@@ -219,10 +219,45 @@ class AddressBook(object):
 	"""
 	def Delete(self):
 		# delete a specific contact item
-		pass
+		name = self.nameVar.get()
+		# invalid name
+		if name == "":
+			tkMessageBox.showinfo("Error", "Name cannot be NULL!")
+			return
+		# db opreations
+		db = sqlite3.connect(self.dbfilename)
+        	cu = db.cursor()
+		cu.execute("select * from AddressList where name  = ?", (name, ))
+		row = cu.fetchone()
+		if row == None:
+			tkMessageBox.showinfo("Error", "No such person!")
+			cu.close()
+			return
+		cu.execute('DELETE FROM AddressList where name=?', (name,))
+		db.commit()
+		cu.close()
+		tkMessageBox.showinfo("Delete Successfully", name+" has been removed from the contact book permenantly!")
 	def ShowAll(self):
 		# show all the contact info stored in the db
-		pass
+		db = sqlite3.connect(self.dbfilename)
+        	cu = db.cursor()
+		cu.execute("select * from AddressList")
+		AllItems = cu.fetchall()
+		cu.close()
+		if AllItems == []:
+			tkMessageBox.showinfo("Error", "Empty contact book!")
+			return
+			
+		# delete the older output first
+		ListSize = self.DisplayArea.size()
+		self.DisplayArea.delete(0, ListSize - 1)
+		title = 'No.\tName\tGender\tTelephone\t\tAddress\t\tEmail\n'
+		self.Display(title)
+		# display the specific contact info in the ListBox
+		for i in range(0, len(AllItems)):
+			row = AllItems[i]	
+			Output = str(row[0]) + '\t' + str(row[1]) + '\t' + str(row[2]) + '\t' + str(row[3]) + '\t\t' + str(row[4]) + '\t\t' + str(row[5]) + '\n'
+			self.Display(Output)
 
 if __name__=="__main__":
 	addrbook = AddressBook("address-book.db")
